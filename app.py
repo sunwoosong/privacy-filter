@@ -23,11 +23,20 @@ model = AutoModelForSequenceClassification.from_pretrained("./koelectra-intent")
 
 def classify(text):
     inputs = tokenizer(text, return_tensors="pt")
+    
+    # 모델이 올라간 디바이스 확인
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    
+    # 입력도 디바이스에 올리기
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+    
     with torch.no_grad():
         outputs = model(**inputs)
+    
     logits = outputs.logits
     predicted_class_id = logits.argmax().item()
-    return predicted_class_id  # LABEL_0 → 0, LABEL_1 → 1 (정수형으로 반환됨)
+    return predicted_class_id
 
 # ─────────────────────────────────────────────────────────────
 # 2. Streamlit 기본 설정
